@@ -1,0 +1,141 @@
+---
+title: "Jessica's_class_dplyr_presentation"
+author: "Roe"
+date: "4/17/2020"
+output: html_document
+---
+
+tidyverse: dplyr, ggplot2, tidyr, stringr, readr, tibble, purr
+"An opinionated collection of R packages designed for data science. All packages share an underlying design philosophy, grammar, and data structure." 
+
+"underlying design philosophy, grammar, and data structure." - this part is important
+
+Look at the data wrangling cheat sheet: https://rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf
+
+load packages and data
+```{r}
+library(dplyr)
+library(tidyr)
+library(titanic)
+
+NR_data <- read.csv("example_data.csv")
+```
+
+look at titanic dataset
+```{r}
+data("titanic_train")
+
+View(titanic_train)
+glimpse(titanic_train)
+str(titanic_train)
+```
+
+***5 verbs of dplyr: select, filter, arrange, mutate, and summarize***
+
+select:
+```{r}
+select(titanic_train, Fare:Embarked)
+
+titanic_train %>% select(Fare)
+titanic_train %>% select(c("Fare", "Ticket", "Embarked"))
+```
+
+select with helper functions:
+```{r}
+# remove certain columns
+titanic_train %>% select(-Fare)
+titanic_train %>% select(-c("Fare", "Sex", "Age"))
+
+# change the order of columns
+titanic_train %>% select(Fare, Sex, Age, everything())
+
+# column name contains a character string
+titanic_train %>% select(contains("ar"))
+
+colnames(iris)
+iris %>% select(contains("Sepal"))
+
+titanic_train %>% select_if(is.numeric) %>% log()
+log(titanic_train)
+```
+
+filter:
+```{r}
+dim(titanic_train)
+nrow(titanic_train)
+
+t = 1
+t <- 1
+t == 2
+
+titanic_train %>% filter(titanic_train$Age > 20)
+titanic_train %>% filter(titanic_train$Age > 20 & titanic_train$Age < 40)
+
+titanic_train %>% filter(titanic_train$Sex == "female")
+titanic_train %>% filter(titanic_train$Sex != "female") # != means 'NOT EQUAL TO'
+
+titanic_train %>% filter(titanic_train$Pclass %in% 1:2) # %in% is 'group membership' 
+# this line says, filter the rows to those that have a Pclass IN the vector 1:2
+
+titanic_train %>% slice(1:6)
+head(titanic_train)
+```
+
+arrange
+```{r}
+titanic_train %>% arrange(Survived)
+titanic_train %>% arrange(desc(Survived))
+
+titanic_train %>% arrange(Survived, Pclass)
+```
+
+mutate
+```{r}
+titanic_train %>% mutate(log_fare = log(Fare))
+```
+
+summarise
+```{r}
+iris
+
+iris %>% group_by(Species) %>% summarise(n())
+
+iris %>% group_by(Species) %>% summarise(Individuals = n(), Average_Sepal_Length = mean(Sepal.Length)) %>% arrange(desc(Average_Sepal_Length))
+```
+
+
+```{r}
+View(NR_data)
+
+# Change improperly named column name
+colnames(NR_data)[which(names(NR_data) == "NE")] <- "Subplot"
+
+NR_data <- read.csv("example_data.csv")
+
+NR_data <- NR_data %>% rename(Subplot = NE)
+
+# Reduce data frame
+NR_data_reduced <- NR_data %>% select(Plot, Subplot, Species, LAI)
+NR_data_reduced
+
+# Back to summarising
+NR_data_reduced2 <- NR_data_reduced %>% group_by(Plot, Species) %>% summarise(LAI = sum(LAI/5))
+
+NR_data_reduced2
+
+# Spread data to wide format
+wide_NR_data_reduced2 <- NR_data_reduced2 %>% spread(Species, LAI)
+wide_NR_data_reduced2
+
+# Change plot column to rownames
+wide_NR_data_reduced2 %>% column_to_rownames("Plot")
+
+# With piping, we can avoid creating all these new variables though
+NR_data_reduced <- NR_data %>% select(Plot, Subplot, Species, LAI) %>% group_by(Plot, Species) %>% summarise(LAI = sum(LAI/5)) %>% spread(Species, LAI) %>% column_to_rownames("Plot")
+
+View(NR_data_reduced)
+
+
+
+```
+
